@@ -28,6 +28,9 @@ trait DBRunner {
 
   lazy val sources: Map[String, FSource[_]] = MetaFactory.create(configuration.sources)
 
-  lazy val completeSources = sources.updated("sources", SourcesSource(sources))
+  lazy val completeSources = sources.
+    updated("sources", SourcesSource(sources)).
+    updated("criteria", CriteriaSource(sources)).
+    updated("sorts", SortsSource(sources))
 
 }

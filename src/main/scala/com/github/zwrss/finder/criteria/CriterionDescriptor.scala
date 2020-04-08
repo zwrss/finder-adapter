@@ -4,6 +4,8 @@ trait CriterionDescriptor[Entity, Value] {
 
   def name: String
 
+  def tpe: String
+
   def deserialize(string: String): Value
 
   def ===(value: Value): Criterion[Entity]
