@@ -5,7 +5,9 @@ import com.github.zwrss.dql.ast.SortAST
 
 /**
  * <Sort>       ::= <SimpleSort> [, <SimpleSort>]*
- * <SimpleSort> ::= <ident> [desc]
+ * <SimpleSort> ::= <Descending> | <Ascending>
+ * <Descending> ::= <ident> desc
+ * <Ascending>  ::= <ident>
  */
 trait SortParser extends DqlParser {
 
@@ -13,8 +15,14 @@ trait SortParser extends DqlParser {
     case s1 ~ ss => (s1 /: ss) (_ and _)
   }
 
-  private def SimpleSort: Parser[SortAST] = ident ~ opt("desc") ^^ {
-    case f ~ desc => SimpleSortAST(f, desc.isEmpty)
+  private def SimpleSort: Parser[SortAST] = Descending | Ascending
+
+  private def Descending: Parser[SortAST] = ident <~ "desc" ^^ {
+    case f => SimpleSortAST(f, ascending = false)
+  }
+
+  private def Ascending: Parser[SortAST] = ident ^^ {
+    case f => SimpleSortAST(f, ascending = true)
   }
 
 }

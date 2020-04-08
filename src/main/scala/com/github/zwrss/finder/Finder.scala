@@ -7,9 +7,7 @@ import com.github.zwrss.finder.message.FindResponse
 import com.github.zwrss.finder.message.TermsRequest
 import com.github.zwrss.finder.message.TermsResponse
 
-trait Finder[Id, Entity] {
-
-  def get(id: Id): Entity
+trait Finder[Entity] {
 
   def find(request: FindRequest[Entity]): FindResponse[Entity]
 

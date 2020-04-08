@@ -1,17 +1,17 @@
 package com.github.zwrss.finder
 
-import com.github.zwrss.finder.field.BigDecimalField
-import com.github.zwrss.finder.field.BooleanField
-import com.github.zwrss.finder.field.IterableField
-import com.github.zwrss.finder.field.OptionalField
-import com.github.zwrss.finder.field.SimpleField
-import com.github.zwrss.finder.field.StringField
 import com.github.zwrss.finder.message.CountRequest
 import com.github.zwrss.finder.message.FindRequest
 import com.github.zwrss.finder.message.TermsBucket
 import com.github.zwrss.finder.message.TermsRequest
 import com.github.zwrss.finder.message.TermsValue
-import com.github.zwrss.memoryfinder.MemoryFinder
+import com.github.zwrss.impl.memory.field.BigDecimalField
+import com.github.zwrss.impl.memory.field.BooleanField
+import com.github.zwrss.impl.memory.field.IterableFieldDescriptor
+import com.github.zwrss.impl.memory.field.OptionalFieldDescriptor
+import com.github.zwrss.impl.memory.field.SimpleFieldDescriptor
+import com.github.zwrss.impl.memory.field.StringField
+import com.github.zwrss.impl.memory.finder.MemoryFinder
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers
 
@@ -22,28 +22,17 @@ class SimpleMemoryFinderSuite extends FlatSpec with Matchers {
 
   case class Box(id: String, label: String, flag: Boolean, optDecimal: Option[BigDecimal], list: List[String])
 
-  def getFinder(_objs: Box*) = new MemoryFinder[String, Box](_objs, _.id) {
+  def getFinder(_objs: Box*) = new MemoryFinder[Box] {
 
-    val label = new SimpleField[Box, String]("label", _.label) with StringField[Box]
+    override protected def objects: Seq[Box] = _objs
 
-    val flag = new SimpleField[Box, Boolean]("flag", _.flag) with BooleanField[Box]
+    val label = new SimpleFieldDescriptor[Box, String]("label", _.label) with StringField[Box]
 
-    val optDecimal = new OptionalField[Box, BigDecimal]("optDecimal", _.optDecimal) with BigDecimalField[Box]
+    val flag = new SimpleFieldDescriptor[Box, Boolean]("flag", _.flag) with BooleanField[Box]
 
-    val list = new IterableField[Box, String]("list", _.list) with StringField[Box]
+    val optDecimal = new OptionalFieldDescriptor[Box, BigDecimal]("optDecimal", _.optDecimal) with BigDecimalField[Box]
 
-  }
-
-
-  it should "find elements by id" in {
-
-    val box1 = Box("1", "first label", true, None, Nil)
-    val box2 = Box("2", "second label", false, None, Nil)
-
-    val finder = getFinder(box1, box2)
-
-    finder.get("1") shouldBe box1
-    finder.get("2") shouldBe box2
+    val list = new IterableFieldDescriptor[Box, String]("list", _.list) with StringField[Box]
 
   }
 

@@ -3,14 +3,15 @@ package com.github.zwrss.dql.ast
 import com.github.zwrss.dql.parser.CountParser
 import com.github.zwrss.dql.parser.SelectParser
 import com.github.zwrss.dql.parser.TermsParser
-import com.github.zwrss.finder.FieldsDescriptor
 import com.github.zwrss.finder.Finder
+import com.github.zwrss.finder.Source
+import com.github.zwrss.finder.field.FieldsDescriptor
 
 trait DqlCommand {
-  def execute[Entity](sources: Map[String, Finder[_, _] with FieldsDescriptor[_]]): DqlCommandResult
+  def execute[Entity](sources: Map[String, Source[_]]): DqlCommandResult
 
-  protected def getSource[Entity](sources: Map[String, Finder[_, _] with FieldsDescriptor[_]]): Finder[_, Entity] with FieldsDescriptor[Entity] = {
-    sources(from).asInstanceOf[Finder[_, Entity] with FieldsDescriptor[Entity]]
+  protected def getSource[Entity](sources: Map[String, Source[_]]): Source[Entity] = {
+    sources(from).asInstanceOf[Source[Entity]]
   }
 
   def from: String

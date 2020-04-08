@@ -1,13 +1,13 @@
 package com.github.zwrss.finder.message
 
-import com.github.zwrss.finder.field.Field
+import com.github.zwrss.finder.field.FieldDescriptor
 
 case class TermsResponse[Entity](
   terms: Seq[TermsBucket[Entity, _]]
 )
 
 case class TermsBucket[Entity, Value](
-  field: Field[Entity, Value],
+  field: FieldDescriptor[Entity, Value],
   values: Seq[TermsValue[Value]]
 )
 
