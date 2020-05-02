@@ -34,7 +34,7 @@ case class CsvSourceDefinition(
     new MemorySource[CSVRecord] {
       override protected def fields: Seq[MemoryFieldDescriptor[CSVRecord, _]] = _fields
 
-      override protected def objects: Seq[CSVRecord] = parser.getRecords
+      override protected val objects: Seq[CSVRecord] = parser.getRecords
     }
   }
 }
