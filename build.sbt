@@ -19,3 +19,10 @@ libraryDependencies ++= Seq(
 )
 
 enablePlugins(JavaAppPackaging)
+
+dockerEntrypoint := Seq("bin/db-server")
+
+dockerExposedPorts := Seq(8080)
+
+dockerEnvVars := Map("FINDER_ADAPTER_PORT" -> "8080")
+
