@@ -2,13 +2,15 @@ package com.github.zwrss
 
 import com.github.zwrss.console.TablePrinter
 import com.github.zwrss.dql.ast.DqlCommand
+import com.github.zwrss.finder.Source
+import com.github.zwrss.util.PropertyStore
 
 import scala.io.StdIn
 
 
 object DB extends DBRunner {
 
-  def main(args: Array[String]): Unit = try {
+  override protected def run(propertyStore: PropertyStore, sources: Map[String, Source[_]]): Unit = {
 
     var command = ""
 
@@ -17,7 +19,7 @@ object DB extends DBRunner {
       if (command != "exit") {
         val toPrint = try {
           val dqlCommand = DqlCommand.fromDql(command)
-          val dqlResult = dqlCommand.execute(completeSources)
+          val dqlResult = dqlCommand.execute(sources)
           TablePrinter.format(dqlResult.headers, dqlResult.values)
         } catch {
           case t: Throwable =>
@@ -27,11 +29,8 @@ object DB extends DBRunner {
       }
     }
 
-  } catch {
-    case t: Throwable =>
-      t printStackTrace System.out
-  } finally {
     System.exit(0)
+
   }
 
 }
