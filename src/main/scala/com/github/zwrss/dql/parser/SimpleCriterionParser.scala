@@ -10,7 +10,7 @@ import com.github.zwrss.dql.ast.Select
  * <NotEquals> ::= <ident> <> <value>
  * <Exists>    ::= <ident> is not null
  * <NotExists> ::= <ident> is null
- * <In>        ::= <ident> in (<value>[, <value>]*)
+ * <In>        ::= <ident> in (<value>[, <value>]* | <Select>)
  * <Between>   ::= <ident> between <value> and <value>
  * <LTE>       ::= <ident> <= <value>
  * <GTE>       ::= <ident> >= <value>
