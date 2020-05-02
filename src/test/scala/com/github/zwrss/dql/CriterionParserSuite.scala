@@ -8,6 +8,8 @@ import org.scalatest.Matchers
 class CriterionParserSuite extends FlatSpec with Matchers {
 
   private val criterionParser = new CriterionParser {
+    override protected def Select: Parser[Select] = ???
+
     def toCriterion(s: String): CriterionAST = parseAll(Expression, s) match {
       case Success(result, _) => result
       case NoSuccess(message, _) => sys.error(s"Cannot parse [$s]: " + message)
@@ -20,7 +22,7 @@ class CriterionParserSuite extends FlatSpec with Matchers {
 
   it should "parse simple criteria" in {
     toCriterion("Fuel = \"Petrol\"") shouldBe EqualsAST("Fuel", "Petrol")
-    toCriterion("Fuel in (\"Petrol\", \"Diesel\")") shouldBe InAST("Fuel", List("Petrol", "Diesel"))
+    toCriterion("Fuel in (\"Petrol\", \"Diesel\")") shouldBe InAST("Fuel", Left(List("Petrol", "Diesel")))
     toCriterion("Power >= 100") shouldBe RangeAST("Power", min = Option("100"))
     toCriterion("Power <= 200") shouldBe RangeAST("Power", max = Option("200"))
     toCriterion("Power between 100 and 200") shouldBe RangeAST("Power", Option("100"), Option("200"))

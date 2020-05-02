@@ -1,10 +1,11 @@
 package com.github.zwrss.dql.ast
 
+import com.github.zwrss.finder.Source
 import com.github.zwrss.finder.criteria._
 
 
 trait CriterionAST {
-  def toQuery(f: CriteriaDescriptor[_]): Criterion[Any]
+  def toQuery(f: CriteriaDescriptor[_], sources: Map[String, Source[_]]): Criterion[Any]
 
   def &&(that: CriterionAST): AndAST = AndAST(this, that)
 
@@ -18,7 +19,9 @@ case class CriterionASTExt(str: String) extends AnyVal {
 
   def like(value: String) = LikeAST(str, value)
 
-  def in(value: String, values: String*) = InAST(str, value :: values.toList)
+  def in(value: String, values: String*) = InAST(str, Left(value :: values.toList))
+
+  def in(select: Select) = InAST(str, Right(select))
 
   def <==(value: String) = RangeAST(str, max = Option(value))
 
@@ -40,44 +43,55 @@ case class BetweenCriterionASTExt(str: String, min: String) {
 }
 
 case class AndAST(q1: CriterionAST, q2: CriterionAST) extends CriterionAST {
-  override def toQuery(f: CriteriaDescriptor[_]): Criterion[Any] = (q1 toQuery f) && (q2 toQuery f)
+  override def toQuery(f: CriteriaDescriptor[_], sources: Map[String, Source[_]]): Criterion[Any] = (q1.toQuery(f, sources)) && (q2.toQuery(f, sources))
 }
 
 case class OrAST(q1: CriterionAST, q2: CriterionAST) extends CriterionAST {
-  override def toQuery(f: CriteriaDescriptor[_]): Criterion[Any] = (q1 toQuery f) || (q2 toQuery f)
+  override def toQuery(f: CriteriaDescriptor[_], sources: Map[String, Source[_]]): Criterion[Any] = (q1.toQuery(f, sources)) || (q2.toQuery(f, sources))
 }
 
 case class NotAST(q: CriterionAST) extends CriterionAST {
-  override def toQuery(f: CriteriaDescriptor[_]): Criterion[Any] = !(q toQuery f)
+  override def toQuery(f: CriteriaDescriptor[_], sources: Map[String, Source[_]]): Criterion[Any] = !(q.toQuery(f, sources))
 }
 
 case class ExistsAST(field: String) extends CriterionAST {
-  override def toQuery(f: CriteriaDescriptor[_]): Criterion[Any] = (f _getCriterionDescriptor field).present
+  override def toQuery(f: CriteriaDescriptor[_], sources: Map[String, Source[_]]): Criterion[Any] = (f _getCriterionDescriptor field).present
 }
 
 case class EqualsAST(field: String, value: String) extends CriterionAST {
-  override def toQuery(f: CriteriaDescriptor[_]): Criterion[Any] = {
+  override def toQuery(f: CriteriaDescriptor[_], sources: Map[String, Source[_]]): Criterion[Any] = {
     val _field = f _getCriterionDescriptor field
     _field === (_field deserialize value)
   }
 }
 
 case class LikeAST(field: String, value: String) extends CriterionAST {
-  override def toQuery(f: CriteriaDescriptor[_]): Criterion[Any] = {
+  override def toQuery(f: CriteriaDescriptor[_], sources: Map[String, Source[_]]): Criterion[Any] = {
     val _field = (f _getCriterionDescriptor field)
     _field like (_field deserialize value)
   }
 }
 
-case class InAST(field: String, values: Seq[String]) extends CriterionAST {
-  override def toQuery(f: CriteriaDescriptor[_]): Criterion[Any] = {
+case class InAST(field: String, query: Either[Seq[String], Select]) extends CriterionAST {
+  override def toQuery(f: CriteriaDescriptor[_], sources: Map[String, Source[_]]): Criterion[Any] = {
     val _field = f _getCriterionDescriptor field
+    val values = query match {
+      case Left(values) =>
+        values
+      case Right(select) =>
+        select.execute[Any](sources) match {
+          case result if result.headers.size == 1 =>
+            result.values.map(_.head)
+          case _ =>
+            Seq.empty[String]
+        }
+    }
     _field in (values map _field.deserialize)
   }
 }
 
 case class RangeAST(field: String, min: Option[String] = None, max: Option[String] = None) extends CriterionAST {
-  override def toQuery(f: CriteriaDescriptor[_]): Criterion[Any] = {
+  override def toQuery(f: CriteriaDescriptor[_], sources: Map[String, Source[_]]): Criterion[Any] = {
     val _field = f _getCriterionDescriptor field
     _field.between(min map _field.deserialize, max map _field.deserialize)
   }

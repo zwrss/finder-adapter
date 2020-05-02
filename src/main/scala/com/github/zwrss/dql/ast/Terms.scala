@@ -17,7 +17,7 @@ case class Terms(what: SelectorAST, from: String, where: Option[CriterionAST] = 
       case FieldsAST(fields) => fields.map(source._getFieldDescriptor)
     }
 
-    val query: Option[Criterion[Entity]] = where.map(_.toQuery(source).asInstanceOf[Criterion[Entity]])
+    val query: Option[Criterion[Entity]] = where.map(_.toQuery(source, sources).asInstanceOf[Criterion[Entity]])
 
     val terms = source.terms(TermsRequest[Entity](query, fields.map(_.asInstanceOf[FieldDescriptor[Entity, _]]))).terms.map {
       case TermsBucket(field, values) =>

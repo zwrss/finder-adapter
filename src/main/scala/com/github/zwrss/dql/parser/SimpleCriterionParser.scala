@@ -1,6 +1,7 @@
 package com.github.zwrss.dql.parser
 
 import com.github.zwrss.dql.ast.CriterionAST
+import com.github.zwrss.dql.ast.Select
 
 /**
  * <Criterion> ::= <Equals> | <NotEquals> | <Exists> | <Like> | <NotExists> | <In> | <Between> | <LTE> | <GTE>
@@ -17,6 +18,8 @@ import com.github.zwrss.dql.ast.CriterionAST
 trait SimpleCriterionParser extends DqlParser {
 
   import com.github.zwrss.dql.ast.CriterionASTExt._
+
+  protected def Select: Parser[Select]
 
   private def Value: Parser[String] = strippedStringLiteral | decimalNumber | "true" | "false"
 
@@ -42,8 +45,11 @@ trait SimpleCriterionParser extends DqlParser {
     case field => field.missing
   }
 
-  private def In = (ident <~ "in") ~ brackets(Value ~ rep("," ~> Value)) ^^ {
-    case field ~ (v1 ~ vs) => field in (v1, vs: _*)
+  private def Values = (Value ~ rep("," ~> Value))
+
+  private def In = (ident <~ "in") ~ brackets(Values | Select) ^^ {
+    case field ~ ((v1: String) ~ (vs: List[String])) => field in (v1, vs: _*)
+    case field ~ (s: Select) => field in s
   }
 
   private def Between = (ident <~ "between") ~ (Value <~ "and") ~ Value ^^ {

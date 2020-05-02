@@ -16,7 +16,7 @@ case class Select(what: SelectorAST, from: String, where: Option[CriterionAST] =
       case FieldsAST(fields) => fields.map(source._getFieldDescriptor)
     }
 
-    val query: Option[Criterion[Entity]] = where.map(_.toQuery(source).asInstanceOf[Criterion[Entity]])
+    val query: Option[Criterion[Entity]] = where.map(_.toQuery(source, sources).asInstanceOf[Criterion[Entity]])
 
     val sorts: Option[Sort[Entity]] = sort.map(_.toSort(source).asInstanceOf[Sort[Entity]])
 
