@@ -30,7 +30,9 @@ case class Select(what: SelectorAST, from: String, join: Option[JoinAST], where:
 
       val sorts: Option[Sort[Entity]] = sort.map(_.toSort(source).asInstanceOf[Sort[Entity]])
 
-      val results = source.find(FindRequest(query, sorts, limit.flatMap(_.offset) getOrElse 0, limit.map(_.limit) getOrElse 10)).items
+      val effectiveLimit: Long = limit.map(_.limit) getOrElse 10L
+
+      val results = source.find(FindRequest(query, sorts, limit.flatMap(_.offset) getOrElse 0L, effectiveLimit)).items.take(effectiveLimit.toInt)
 
       results.map { o =>
         fields.map { field =>
@@ -44,7 +46,7 @@ case class Select(what: SelectorAST, from: String, join: Option[JoinAST], where:
       case Some(join) =>
         val leftCriterionDescriptor: CriterionDescriptor[Any, Any] = source._getCriterionDescriptor(join.left)
         val rightSource: Source[Any] = sources(join.source).asInstanceOf[Source[Any]]
-        val rightElems: Seq[String] = rightSource.find(FindRequest[Any]()).items.map { item =>
+        val rightElems: Seq[String] = rightSource.find(FindRequest[Any](limit = join.limit getOrElse 10l)).items.map { item =>
           rightSource._getFieldDescriptor(join.right).get(item).mkString(" ")
         }
         val results = rightElems.flatMap { elem =>

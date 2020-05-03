@@ -24,8 +24,8 @@ trait SelectParser extends SelectorParser with CriterionParser with SortParser {
       case selector ~ from ~ join ~ query ~ sort ~ limit => new Select(selector, from, join, query, sort, limit)
     }
 
-  private def Join: Parser[JoinAST] = ident ~ ("on" ~> ident) ~ ("=" ~> ident) ^^ {
-    case table ~ left ~ right => JoinAST(table, left, right)
+  private def Join: Parser[JoinAST] = ident ~ opt("limit" ~> wholeNumber) ~ ("on" ~> ident) ~ ("=" ~> ident) ^^ {
+    case table ~ limit ~ left ~ right => JoinAST(table, left, right, limit.map(_.toLong))
   }
 
   private def Limit = opt(wholeNumber <~ ",") ~ wholeNumber ^^ {
